@@ -10,7 +10,7 @@ router.get("/", projectControllers.getProjects);
 
 router.post(
   "/",
-  auth(),
+  // auth(),
   validateRequest(projectValidationSchemas.createProjectSchema),
   projectControllers.createProject
 );

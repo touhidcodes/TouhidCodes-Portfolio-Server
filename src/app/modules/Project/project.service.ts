@@ -14,7 +14,7 @@ const getProjects = async (params: any, options: TPaginationOptions) => {
       OR: [
         { title: { contains: searchTerm, mode: "insensitive" } },
         {
-          technologies: {
+          techStack: {
             hasSome: searchTerm.split(",").map((term: string) => ({
               contains: term.trim(),
               mode: "insensitive",
@@ -33,7 +33,7 @@ const getProjects = async (params: any, options: TPaginationOptions) => {
 
   if (featured) {
     andConditions.push({
-      featured: true,
+      isFeatured: true,
     });
   }
 

@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
 }
 
 model Auth {
@@ -22,21 +21,24 @@ model Auth {
 }
 
 model Project {
-  id                 String          @id @default(auto()) @map("_id") @db.ObjectId
-  title              String
-  description        String
-  technologies       String[]
-  frontEndGithubLink String?
-  backEndGithubLink  String?
-  frontEndLiveLink   String?
-  backEndLiveLink    String?
-  details            String
-  thumbnail          String?
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-  featured           Boolean         @default(false)
-  category           ProjectCategory @relation(fields: [categoryId], references: [id])
-  categoryId         String          @db.ObjectId
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String
+  techStack      String[] // formerly: technologies
+  tags           String[] // new: for filtering/badging
+  features       String[] // new: highlight features
+  issuesFaced    String[] // new: development challenges
+  githubFrontend String? // renamed for consistency
+  githubBackend  String? // renamed for consistency
+  liveDemo       String? // renamed from frontEndLiveLink
+  thumbnail      String?
+  category       ProjectCategory @relation(fields: [categoryId], references: [id])
+  categoryId     String          @db.ObjectId
+  date           String // new: simplified published date
+  isFeatured     Boolean         @default(false)
+  status         String          @default("Completed") // or use an enum
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@map("projects")
 }
@@ -78,6 +80,87 @@ enum SkillLevel {
   Junior
   Intermediate
   Expert
+}
+
+model Timeline {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  type          EntryType
+  title         String
+  organization  String
+
+  startDate     String?
+  endDate       String?
+  isCurrent     Boolean  @default(false)
+  location      String?
+  description   String?
+  skills        String[]
+  tags          String[]
+
+  // Experience fields
+  employmentType EmploymentType?
+  companyType    CompanyType?
+  responsibilities String[]
+  achievements     String[]
+
+  // Education fields
+  degree          String?
+  fieldOfStudy    String?
+  grade           String?
+  resultType      ResultType?
+  activities      String[]
+  institutionType InstitutionType?
+
+  // Certification fields
+  issuer          String?
+  credentialId    String?
+  credentialUrl   String?
+  issueDate       String?
+  expiryDate      String?
+  learningType    LearningType?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum EntryType {
+  EXPERIENCE
+  EDUCATION
+  CERTIFICATION
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  FREELANCE
+  CONTRACT
+}
+
+enum CompanyType {
+  STARTUP
+  AGENCY
+  PRODUCT
+  RESEARCH
+}
+
+enum ResultType {
+  CGPA
+  GPA
+  PERCENTAGE
+}
+
+enum InstitutionType {
+  SCHOOL
+  COLLEGE
+  UNIVERSITY
+}
+
+enum LearningType {
+  COURSE
+  BOOTCAMP
+  WORKSHOP
+  TRAINING
 }
 
 model Blog {
