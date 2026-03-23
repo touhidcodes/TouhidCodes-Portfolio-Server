@@ -1,63 +1,170 @@
-import { Prisma, Project } from "@prisma/client";
-import prisma from "../../utils/prisma";
+import { Prisma } from "@prisma/client";
+import { prisma } from "../../../lib/prisma";
 import { TPaginationOptions } from "../../interfaces/pagination";
 import { paginationHelper } from "../../utils/paginationHelpers";
 
-const getProjects = async (params: any, options: TPaginationOptions) => {
+type TProjectPayload = Record<string, unknown> & {
+  categoryId?: string;
+  keyFeatures?: string[];
+  features?: string[];
+  challenges?: string[];
+  issuesFaced?: string[];
+  repoFrontendUrl?: string;
+  githubFrontend?: string;
+  repoBackendUrl?: string;
+  githubBackend?: string;
+  demoUrl?: string;
+  liveDemo?: string;
+};
+
+const parseBooleanFilter = (value: unknown): boolean | undefined => {
+  if (typeof value === "boolean") return value;
+  if (typeof value !== "string") return undefined;
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "true") return true;
+  if (normalized === "false") return false;
+  return undefined;
+};
+
+const normalizeProjectPayload = (payload: TProjectPayload): TProjectPayload => {
+  const normalized: TProjectPayload = { ...payload };
+
+  if (!normalized.keyFeatures && Array.isArray(normalized.features)) {
+    normalized.keyFeatures = normalized.features;
+  }
+
+  if (!normalized.challenges && Array.isArray(normalized.issuesFaced)) {
+    normalized.challenges = normalized.issuesFaced;
+  }
+
+  if (
+    !normalized.repoFrontendUrl &&
+    typeof normalized.githubFrontend === "string"
+  ) {
+    normalized.repoFrontendUrl = normalized.githubFrontend;
+  }
+
+  if (
+    !normalized.repoBackendUrl &&
+    typeof normalized.githubBackend === "string"
+  ) {
+    normalized.repoBackendUrl = normalized.githubBackend;
+  }
+
+  if (!normalized.demoUrl && typeof normalized.liveDemo === "string") {
+    normalized.demoUrl = normalized.liveDemo;
+  }
+
+  delete normalized.features;
+  delete normalized.issuesFaced;
+  delete normalized.githubFrontend;
+  delete normalized.githubBackend;
+  delete normalized.liveDemo;
+
+  return normalized;
+};
+
+const getProjects = async (
+  params: Record<string, unknown>,
+  options: TPaginationOptions,
+) => {
   const { page, limit, skip } = paginationHelper.calculatePagination(options);
-  const { searchTerm, category, featured, ...filterData } = params;
+  const { searchTerm, category, featured, published, ...filterData } = params;
 
   const andConditions: Prisma.ProjectWhereInput[] = [];
 
-  if (searchTerm) {
+  if (typeof searchTerm === "string" && searchTerm.trim().length > 0) {
+    const searchText = searchTerm.trim();
+    const terms = searchText
+      .split(",")
+      .map((term) => term.trim())
+      .filter(Boolean);
+
+    const searchConditions: Prisma.ProjectWhereInput[] = [
+      { title: { contains: searchText, mode: "insensitive" } },
+      { summary: { contains: searchText, mode: "insensitive" } },
+      { description: { contains: searchText, mode: "insensitive" } },
+      ...terms.map(
+        (term): Prisma.ProjectWhereInput => ({
+          techStack: { has: term },
+        }),
+      ),
+      ...terms.map(
+        (term): Prisma.ProjectWhereInput => ({
+          tags: { has: term },
+        }),
+      ),
+    ];
+
     andConditions.push({
-      OR: [
-        { title: { contains: searchTerm, mode: "insensitive" } },
-        {
-          techStack: {
-            hasSome: searchTerm.split(",").map((term: string) => ({
-              contains: term.trim(),
-              mode: "insensitive",
-            })),
-          },
-        },
-      ],
+      OR: searchConditions,
     });
   }
 
-  if (category) {
+  if (typeof category === "string" && category.trim().length > 0) {
     andConditions.push({
-      category: { name: category },
+      category: { name: category.trim() },
     });
   }
 
-  if (featured) {
+  const featuredFilter = parseBooleanFilter(featured);
+  if (featuredFilter !== undefined) {
     andConditions.push({
-      isFeatured: true,
+      isFeatured: featuredFilter,
     });
   }
 
-  if (Object.keys(filterData).length > 0) {
+  const publishedFilter = parseBooleanFilter(published);
+  if (publishedFilter !== undefined) {
     andConditions.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
+      isPublished: publishedFilter,
+    });
+  }
+
+  const dynamicFilters = Object.entries(filterData).filter(
+    ([, value]) => value !== undefined && value !== "",
+  );
+
+  if (dynamicFilters.length > 0) {
+    andConditions.push({
+      AND: dynamicFilters.map(
+        ([key, value]): Prisma.ProjectWhereInput =>
+          ({
+            [key]: {
+              equals: value,
+            },
+          }) as Prisma.ProjectWhereInput,
+      ),
     });
   }
 
   const whereConditions: Prisma.ProjectWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};
 
+  const sortableFields = new Set([
+    "title",
+    "createdAt",
+    "updatedAt",
+    "sortOrder",
+    "launchedAt",
+    "status",
+  ]);
+  const sortBy =
+    typeof options.sortBy === "string" && sortableFields.has(options.sortBy)
+      ? options.sortBy
+      : "sortOrder";
+  const sortOrder = options.sortOrder === "asc" ? "asc" : "desc";
+
   const result = await prisma.project.findMany({
     where: whereConditions,
     skip,
     take: limit,
-    orderBy:
-      options.sortBy && options.sortOrder
-        ? { [options.sortBy]: options.sortOrder }
-        : { createdAt: "desc" },
+    orderBy: [
+      { isFeatured: "desc" },
+      { [sortBy]: sortOrder } as Prisma.ProjectOrderByWithRelationInput,
+      { createdAt: "desc" },
+    ],
     include: {
       category: true,
     },
@@ -77,7 +184,7 @@ const getProjects = async (params: any, options: TPaginationOptions) => {
   };
 };
 
-const getProjectById = async (projectId: string): Promise<Project | null> => {
+const getProjectById = async (projectId: string) => {
   const result = await prisma.project.findUnique({
     where: {
       id: projectId,
@@ -90,14 +197,23 @@ const getProjectById = async (projectId: string): Promise<Project | null> => {
   return result;
 };
 
-const createProject = async (projectData: Project) => {
-  const { categoryId, ...data } = projectData;
+const createProject = async (projectData: TProjectPayload) => {
+  const normalizedData = normalizeProjectPayload(projectData);
+  const { categoryId, ...data } = normalizedData;
+
+  if (!categoryId || !categoryId.trim()) {
+    throw new Error("Category ID is required");
+  }
+
   const result = await prisma.project.create({
     data: {
-      ...data,
+      ...(data as Prisma.ProjectCreateInput),
       category: {
         connect: { id: categoryId },
       },
+    },
+    include: {
+      category: true,
     },
   });
   return result;
@@ -105,18 +221,29 @@ const createProject = async (projectData: Project) => {
 
 const updateProject = async (
   projectId: string,
-  projectData: Partial<Project>
+  projectData: Partial<TProjectPayload>,
 ) => {
-  const { categoryId, ...data } = projectData;
+  const normalizedData = normalizeProjectPayload(
+    projectData as TProjectPayload,
+  );
+  const { categoryId, ...data } = normalizedData;
+  const updateData: Prisma.ProjectUpdateInput = {
+    ...(data as Prisma.ProjectUpdateInput),
+  };
+
+  if (typeof categoryId === "string" && categoryId.trim().length > 0) {
+    updateData.category = {
+      connect: { id: categoryId },
+    };
+  }
+
   const result = await prisma.project.update({
     where: {
       id: projectId,
     },
-    data: {
-      ...data,
-      category: {
-        connect: { id: categoryId },
-      },
+    data: updateData,
+    include: {
+      category: true,
     },
   });
   return result;

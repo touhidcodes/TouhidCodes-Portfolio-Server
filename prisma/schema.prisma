@@ -2,8 +2,10 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
+
 
 datasource db {
   provider = "mongodb"
@@ -21,26 +23,40 @@ model Auth {
 }
 
 model Project {
-  id             String          @id @default(auto()) @map("_id") @db.ObjectId
-  title          String
-  description    String
-  techStack      String[] // formerly: technologies
-  tags           String[] // new: for filtering/badging
-  features       String[] // new: highlight features
-  issuesFaced    String[] // new: development challenges
-  githubFrontend String? // renamed for consistency
-  githubBackend  String? // renamed for consistency
-  liveDemo       String? // renamed from frontEndLiveLink
-  thumbnail      String?
-  category       ProjectCategory @relation(fields: [categoryId], references: [id])
-  categoryId     String          @db.ObjectId
-  date           String // new: simplified published date
-  isFeatured     Boolean         @default(false)
-  status         String          @default("Completed") // or use an enum
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  slug            String?
+  summary         String?
+  description     String
+  techStack       String[]        @default([])
+  tags            String[]        @default([])
+  keyFeatures     String[]        
+  challenges      String[]        
+  repoFrontendUrl String?        
+  repoBackendUrl  String?       
+  liveUrl         String?         
+  thumbnail       String?
+  gallery         String[]        @default([])
+  status          ProjectStatus   @default(COMPLETED)
+  isFeatured      Boolean         @default(false)
+  isPublished     Boolean         @default(true)
+  startDate      DateTime?
+  endDate            DateTime? 
+  category        ProjectCategory @relation(fields: [categoryId], references: [id])
+  categoryId      String          @db.ObjectId
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
+  @@index([slug])
   @@map("projects")
+}
+
+enum ProjectStatus {
+  COMPLETED  
+  IN_PROGRESS 
+  UPCOMING 
+  ON_HOLD     
+  ARCHIVED  
 }
 
 model ProjectCategory {
@@ -121,6 +137,8 @@ model Timeline {
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+    @@map("timelines")
 }
 
 enum EntryType {

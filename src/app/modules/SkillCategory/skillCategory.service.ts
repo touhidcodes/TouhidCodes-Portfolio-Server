@@ -1,5 +1,5 @@
 import { SkillCategory } from "@prisma/client";
-import prisma from "../../utils/prisma";
+import { prisma } from "../../../lib/prisma";
 
 const createSkillCategory = async (categoryData: SkillCategory) => {
   const result = await prisma.skillCategory.create({

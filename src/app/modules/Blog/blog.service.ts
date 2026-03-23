@@ -1,5 +1,5 @@
-import { Prisma, Blog } from "@prisma/client";
-import prisma from "../../utils/prisma";
+import { Blog, Prisma } from "@prisma/client";
+import { prisma } from "../../../lib/prisma";
 import { TPaginationOptions } from "../../interfaces/pagination";
 import { paginationHelper } from "../../utils/paginationHelpers";
 

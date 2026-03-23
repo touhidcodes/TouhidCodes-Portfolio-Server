@@ -1,5 +1,5 @@
 import { Skill } from "@prisma/client";
-import prisma from "../../utils/prisma";
+import { prisma } from "../../../lib/prisma";
 import { TGroupedSkills } from "../../interfaces/common";
 
 const getSkills = async () => {

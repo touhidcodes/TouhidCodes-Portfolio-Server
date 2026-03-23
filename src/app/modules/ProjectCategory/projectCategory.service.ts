@@ -1,5 +1,5 @@
 import { ProjectCategory } from "@prisma/client";
-import prisma from "../../utils/prisma";
+import { prisma } from "../../../lib/prisma";
 
 const createProjectCategory = async (categoryData: ProjectCategory) => {
   const result = await prisma.projectCategory.create({

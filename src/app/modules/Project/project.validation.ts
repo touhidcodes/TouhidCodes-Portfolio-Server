@@ -1,41 +1,83 @@
 import { z } from "zod";
 
-// Optional enum example for status
-const statusEnum = z.enum(["Completed", "In Progress", "Upcoming"]);
+const projectStatusEnum = z.enum([
+  "Completed",
+  "In Progress",
+  "Upcoming",
+  "On Hold",
+  "Archived",
+]);
 
-const createProjectSchema = z.object({
-  body: z.object({
+const projectRoleEnum = z.enum([
+  "FULL_STACK",
+  "FRONTEND",
+  "BACKEND",
+  "UI_UX",
+  "DEVOPS",
+  "MOBILE",
+]);
+
+const nonEmptyStringArray = z
+  .array(z.string().trim().min(1, "Array values cannot be empty"))
+  .min(1);
+
+const optionalStringArray = z.array(z.string().trim().min(1)).optional();
+const optionalUrl = z.string().url("Must be a valid URL").optional();
+
+const projectCreateBodySchema = z
+  .object({
     title: z
       .string({
         required_error: "Project title is required",
       })
+      .trim()
       .min(1, "Project title cannot be empty"),
+
+    slug: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+        message:
+          "Slug must contain lowercase letters, numbers, and hyphens only",
+      })
+      .optional(),
+
+    summary: z.string().trim().min(1).optional(),
 
     description: z
       .string({
         required_error: "Description is required",
       })
+      .trim()
       .min(1, "Description cannot be empty"),
 
-    techStack: z.array(z.string()).min(1, {
-      message: "Tech stack must include at least one technology",
-    }),
+    techStack: nonEmptyStringArray,
+    tags: optionalStringArray,
 
-    tags: z.array(z.string()).min(1, {
-      message: "Tags must include at least one item",
-    }),
+    keyFeatures: optionalStringArray,
+    features: optionalStringArray, // Legacy alias
 
-    features: z.array(z.string()).min(1, {
-      message: "Features must include at least one item",
-    }),
+    challenges: optionalStringArray,
+    issuesFaced: optionalStringArray, // Legacy alias
 
-    issuesFaced: z.array(z.string()).optional(),
+    impactMetrics: optionalStringArray,
+    learnings: optionalStringArray,
 
-    githubFrontend: z.string().url("Must be a valid URL").optional(),
-    githubBackend: z.string().url("Must be a valid URL").optional(),
-    liveDemo: z.string().url("Must be a valid URL").optional(),
+    repoFrontendUrl: optionalUrl,
+    repoBackendUrl: optionalUrl,
+    demoUrl: optionalUrl,
+    caseStudyUrl: optionalUrl,
+    videoDemoUrl: optionalUrl,
 
-    thumbnail: z.string().url().optional(),
+    githubFrontend: optionalUrl, // Legacy alias
+    githubBackend: optionalUrl, // Legacy alias
+    liveDemo: optionalUrl, // Legacy alias
+
+    thumbnail: optionalUrl,
+    gallery: optionalStringArray,
+
+    role: projectRoleEnum.optional(),
+    teamSize: z.number().int().positive().optional(),
 
     categoryId: z
       .string({
@@ -43,29 +85,68 @@ const createProjectSchema = z.object({
       })
       .min(1, "Category ID cannot be empty"),
 
-    date: z.string().optional(), // use ISO string or convert to Date
+    launchedAt: z.coerce.date().optional(),
+    date: z.string().trim().optional(), // legacy
+
     isFeatured: z.boolean().optional(),
-    status: statusEnum.optional(), // or z.string() if not using enum
-  }),
+    isPublished: z.boolean().optional(),
+    sortOrder: z.number().int().nonnegative().optional(),
+    status: projectStatusEnum.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.keyFeatures?.length && !data.features?.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["keyFeatures"],
+        message: "At least one key feature is required",
+      });
+    }
+  });
+
+const createProjectSchema = z.object({
+  body: projectCreateBodySchema,
 });
 
 const updateProjectSchema = z.object({
   body: z.object({
-    title: z.string().min(1).optional(),
-    description: z.string().min(1).optional(),
-    techStack: z.array(z.string()).min(1).optional(),
-    tags: z.array(z.string()).optional(),
-    features: z.array(z.string()).optional(),
-    issuesFaced: z.array(z.string()).optional(),
-    githubFrontend: z.string().url().optional(),
-    githubBackend: z.string().url().optional(),
-    liveDemo: z.string().url().optional(),
-    details: z.string().min(1).optional(),
-    thumbnail: z.string().url().optional(),
+    title: z.string().trim().min(1).optional(),
+    slug: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+        message:
+          "Slug must contain lowercase letters, numbers, and hyphens only",
+      })
+      .optional(),
+    summary: z.string().trim().min(1).optional(),
+    description: z.string().trim().min(1).optional(),
+    techStack: nonEmptyStringArray.optional(),
+    tags: optionalStringArray,
+    keyFeatures: optionalStringArray,
+    features: optionalStringArray, // Legacy alias
+    challenges: optionalStringArray,
+    issuesFaced: optionalStringArray, // Legacy alias
+    impactMetrics: optionalStringArray,
+    learnings: optionalStringArray,
+    repoFrontendUrl: optionalUrl,
+    repoBackendUrl: optionalUrl,
+    demoUrl: optionalUrl,
+    caseStudyUrl: optionalUrl,
+    videoDemoUrl: optionalUrl,
+    githubFrontend: optionalUrl, // Legacy alias
+    githubBackend: optionalUrl, // Legacy alias
+    liveDemo: optionalUrl, // Legacy alias
+    thumbnail: optionalUrl,
+    gallery: optionalStringArray,
+    role: projectRoleEnum.optional(),
+    teamSize: z.number().int().positive().optional(),
     categoryId: z.string().optional(),
+    launchedAt: z.coerce.date().optional(),
     date: z.string().optional(),
     isFeatured: z.boolean().optional(),
-    status: statusEnum.optional(), // or z.string()
+    isPublished: z.boolean().optional(),
+    sortOrder: z.number().int().nonnegative().optional(),
+    status: projectStatusEnum.optional(),
   }),
 });
 

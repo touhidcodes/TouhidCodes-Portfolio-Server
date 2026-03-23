@@ -1,5 +1,5 @@
 import { Resume } from "@prisma/client";
-import prisma from "../../utils/prisma";
+import { prisma } from "../../../lib/prisma";
 
 const createOrUpdateResume = async (resumeData: Resume) => {
   await prisma.resume.deleteMany({});

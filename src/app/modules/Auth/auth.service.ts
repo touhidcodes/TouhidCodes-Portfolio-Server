@@ -1,13 +1,13 @@
-import { Secret } from "jsonwebtoken";
-import { jwtHelpers } from "../../utils/jwtHelpers";
-import prisma from "../../utils/prisma";
 import * as bcrypt from "bcrypt";
+import httpStatus from "http-status";
+import { Secret } from "jsonwebtoken";
+import { prisma } from "../../../lib/prisma";
 import config from "../../config/config";
 import APIError from "../../errors/APIError";
-import httpStatus from "http-status";
-import { IChangePassword } from "./auth.interface";
 import { comparePasswords } from "../../utils/comparePassword";
 import { hashedPassword } from "../../utils/hashedPassword";
+import { jwtHelpers } from "../../utils/jwtHelpers";
+import { IChangePassword } from "./auth.interface";
 
 const loginUser = async (payload: { identifier: string; password: string }) => {
   let userData = await prisma.auth.findUnique({
@@ -30,7 +30,7 @@ const loginUser = async (payload: { identifier: string; password: string }) => {
 
   const isCorrectPassword: boolean = await bcrypt.compare(
     payload.password,
-    userData.password
+    userData.password,
   );
 
   if (!isCorrectPassword) {
@@ -44,7 +44,7 @@ const loginUser = async (payload: { identifier: string; password: string }) => {
       userId: userData.id,
     },
     config.jwt.access_token_secret as Secret,
-    config.jwt.access_token_expires_in as string
+    config.jwt.access_token_expires_in as string,
   );
 
   const refreshToken = jwtHelpers.generateToken(
@@ -54,7 +54,7 @@ const loginUser = async (payload: { identifier: string; password: string }) => {
       userId: userData.id,
     },
     config.jwt.refresh_token_secret as Secret,
-    config.jwt.refresh_token_expires_in as string
+    config.jwt.refresh_token_expires_in as string,
   );
 
   return {
@@ -69,7 +69,7 @@ const refreshToken = async (token: string) => {
   try {
     decodedData = jwtHelpers.verifyToken(
       token,
-      config.jwt.refresh_token_secret as Secret
+      config.jwt.refresh_token_secret as Secret,
     );
   } catch (err) {
     throw new Error("You are not authorized!");
@@ -86,7 +86,7 @@ const refreshToken = async (token: string) => {
       email: userData.email,
     },
     config.jwt.access_token_secret as Secret,
-    config.jwt.access_token_expires_in as string
+    config.jwt.access_token_expires_in as string,
   );
 
   return {
