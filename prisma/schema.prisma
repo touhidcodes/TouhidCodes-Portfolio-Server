@@ -38,7 +38,7 @@ model Project {
   thumbnail       String?
   gallery         String[]        @default([])
   status          ProjectStatus   @default(COMPLETED)
-  isFeatured      Boolean         @default(false)
+  isFeatured      Boolean         @default(true)
   isPublished     Boolean         @default(true)
   startDate      DateTime?
   endDate            DateTime? 
