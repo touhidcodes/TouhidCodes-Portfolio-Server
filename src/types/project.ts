@@ -33,3 +33,33 @@ export type TProject = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export type TProjectPayload = {
+  title?: string;
+  slug?: string;
+  summary?: string;
+  description?: string;
+  techStack?: string[];
+  tags?: string[];
+  keyFeatures?: string[];
+  features?: string[];
+  challenges?: string[];
+  issuesFaced?: string[];
+  repoFrontendUrl?: string;
+  repoBackendUrl?: string;
+  liveUrl?: string;
+  demoUrl?: string;
+  githubFrontend?: string;
+  githubBackend?: string;
+  liveDemo?: string;
+  thumbnail?: string;
+  gallery?: string[];
+  categoryId?: string;
+  status?: string;
+  isFeatured?: boolean;
+  isPublished?: boolean;
+  startDate?: Date | string;
+  endDate?: Date | string;
+  launchedAt?: Date | string;
+  date?: string;
+};
