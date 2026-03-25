@@ -1,6 +1,6 @@
 import { Blog, Prisma } from "@prisma/client";
-import { prisma } from "../../../lib/prisma";
 import { TPaginationOptions } from "../../interfaces/pagination";
+import { prisma } from "../../lib/prisma";
 import { paginationHelper } from "../../utils/paginationHelpers";
 
 const getBlogs = async (params: any, options: TPaginationOptions) => {

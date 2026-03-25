@@ -1,9 +1,9 @@
 import * as bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import { Secret } from "jsonwebtoken";
-import { prisma } from "../../../lib/prisma";
 import config from "../../config/config";
 import APIError from "../../errors/APIError";
+import { prisma } from "../../lib/prisma";
 import { comparePasswords } from "../../utils/comparePassword";
 import { hashedPassword } from "../../utils/hashedPassword";
 import { jwtHelpers } from "../../utils/jwtHelpers";

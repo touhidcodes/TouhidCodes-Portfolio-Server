@@ -1,6 +1,6 @@
 import { Skill } from "@prisma/client";
-import { prisma } from "../../../lib/prisma";
 import { TGroupedSkills } from "../../interfaces/common";
+import { prisma } from "../../lib/prisma";
 
 const getSkills = async () => {
   const result = await prisma.skill.findMany({

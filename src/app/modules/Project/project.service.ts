@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "../../../lib/prisma";
-import { TProjectPayload } from "../../../types/project";
+import { Prisma, ProjectStatus } from "@prisma/client";
+import { prisma } from "../../lib/prisma";
+import { TProjectPayload } from "../../types/project";
 import { generateUniqueSlug } from "../../utils/slugGenerator";
 
 // GET ALL
@@ -39,9 +39,10 @@ const createProject = async (payload: TProjectPayload) => {
 
   return prisma.project.create({
     data: {
-      ...rest,
       title,
       slug,
+
+      description: rest.description as string,
 
       techStack: rest.techStack ?? [],
       tags: rest.tags ?? [],
@@ -49,7 +50,7 @@ const createProject = async (payload: TProjectPayload) => {
       challenges: rest.challenges ?? [],
       gallery: rest.gallery ?? [],
 
-      status: rest.status ?? "COMPLETED",
+      status: (rest.status as ProjectStatus) ?? ProjectStatus.COMPLETED,
       isFeatured: rest.isFeatured ?? false,
       isPublished: rest.isPublished ?? true,
 
@@ -94,7 +95,7 @@ const updateProject = async (
     data: updateData,
     include: { category: true },
   });
-};;;
+};
 
 // DELETE
 const deleteProject = async (id: string) => {
