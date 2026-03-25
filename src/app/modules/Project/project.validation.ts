@@ -1,156 +1,87 @@
+import { ProjectStatus } from "@prisma/client";
 import { z } from "zod";
 
-const projectStatusEnum = z.enum([
-  "Completed",
-  "In Progress",
-  "Upcoming",
-  "On Hold",
-  "Archived",
-]);
+// Mongo ObjectId validator
+const objectId = z.string().regex(/^[a-f\d]{24}$/i, "Invalid Mongo ObjectId");
 
-const projectRoleEnum = z.enum([
-  "FULL_STACK",
-  "FRONTEND",
-  "BACKEND",
-  "UI_UX",
-  "DEVOPS",
-  "MOBILE",
-]);
-
-const nonEmptyStringArray = z
-  .array(z.string().trim().min(1, "Array values cannot be empty"))
-  .min(1);
-
-const optionalStringArray = z.array(z.string().trim().min(1)).optional();
-const optionalUrl = z.string().url("Must be a valid URL").optional();
-
-const projectCreateBodySchema = z
-  .object({
+export const createProjectSchema = z.object({
+  body: z.object({
     title: z
-      .string({
-        required_error: "Project title is required",
-      })
+      .string({ required_error: "Title is required" })
       .trim()
-      .min(1, "Project title cannot be empty"),
-
-    slug: z
-      .string()
-      .trim()
-      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-        message:
-          "Slug must contain lowercase letters, numbers, and hyphens only",
-      })
-      .optional(),
-
-    summary: z.string().trim().min(1).optional(),
+      .min(3)
+      .max(100),
 
     description: z
-      .string({
-        required_error: "Description is required",
-      })
+      .string({ required_error: "Description is required" })
       .trim()
-      .min(1, "Description cannot be empty"),
+      .min(10),
 
-    techStack: nonEmptyStringArray,
-    tags: optionalStringArray,
+    summary: z.string().trim().max(200).optional(),
 
-    keyFeatures: optionalStringArray,
-    features: optionalStringArray, // Legacy alias
+    categoryId: objectId,
 
-    challenges: optionalStringArray,
-    issuesFaced: optionalStringArray, // Legacy alias
+    // Arrays
+    techStack: z.array(z.string().trim()).optional(),
+    tags: z.array(z.string().trim()).optional(),
 
-    impactMetrics: optionalStringArray,
-    learnings: optionalStringArray,
+    keyFeatures: z
+      .array(z.string().trim())
+      .min(1, "At least one key feature is required"),
 
-    repoFrontendUrl: optionalUrl,
-    repoBackendUrl: optionalUrl,
-    demoUrl: optionalUrl,
-    caseStudyUrl: optionalUrl,
-    videoDemoUrl: optionalUrl,
+    challenges: z
+      .array(z.string().trim())
+      .min(1, "At least one challenge is required"),
 
-    githubFrontend: optionalUrl, // Legacy alias
-    githubBackend: optionalUrl, // Legacy alias
-    liveDemo: optionalUrl, // Legacy alias
+    gallery: z.array(z.string().url()).optional(),
 
-    thumbnail: optionalUrl,
-    gallery: optionalStringArray,
+    // URLs
+    repoFrontendUrl: z.string().url().optional(),
+    repoBackendUrl: z.string().url().optional(),
+    liveUrl: z.string().url().optional(),
+    thumbnail: z.string().url().optional(),
 
-    role: projectRoleEnum.optional(),
-    teamSize: z.number().int().positive().optional(),
-
-    categoryId: z
-      .string({
-        required_error: "Category ID is required",
-      })
-      .min(1, "Category ID cannot be empty"),
-
-    launchedAt: z.coerce.date().optional(),
-    date: z.string().trim().optional(), // legacy
+    // Enum
+    status: z.nativeEnum(ProjectStatus).optional(),
 
     isFeatured: z.boolean().optional(),
     isPublished: z.boolean().optional(),
-    sortOrder: z.number().int().nonnegative().optional(),
-    status: projectStatusEnum.optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.keyFeatures?.length && !data.features?.length) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["keyFeatures"],
-        message: "At least one key feature is required",
-      });
-    }
-  });
 
-const createProjectSchema = z.object({
-  body: projectCreateBodySchema,
-});
-
-const updateProjectSchema = z.object({
-  body: z.object({
-    title: z.string().trim().min(1).optional(),
-    slug: z
-      .string()
-      .trim()
-      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-        message:
-          "Slug must contain lowercase letters, numbers, and hyphens only",
-      })
-      .optional(),
-    summary: z.string().trim().min(1).optional(),
-    description: z.string().trim().min(1).optional(),
-    techStack: nonEmptyStringArray.optional(),
-    tags: optionalStringArray,
-    keyFeatures: optionalStringArray,
-    features: optionalStringArray, // Legacy alias
-    challenges: optionalStringArray,
-    issuesFaced: optionalStringArray, // Legacy alias
-    impactMetrics: optionalStringArray,
-    learnings: optionalStringArray,
-    repoFrontendUrl: optionalUrl,
-    repoBackendUrl: optionalUrl,
-    demoUrl: optionalUrl,
-    caseStudyUrl: optionalUrl,
-    videoDemoUrl: optionalUrl,
-    githubFrontend: optionalUrl, // Legacy alias
-    githubBackend: optionalUrl, // Legacy alias
-    liveDemo: optionalUrl, // Legacy alias
-    thumbnail: optionalUrl,
-    gallery: optionalStringArray,
-    role: projectRoleEnum.optional(),
-    teamSize: z.number().int().positive().optional(),
-    categoryId: z.string().optional(),
-    launchedAt: z.coerce.date().optional(),
-    date: z.string().optional(),
-    isFeatured: z.boolean().optional(),
-    isPublished: z.boolean().optional(),
-    sortOrder: z.number().int().nonnegative().optional(),
-    status: projectStatusEnum.optional(),
+    // Dates (string → Date handled later in service)
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional(),
   }),
 });
 
-export const projectValidationSchemas = {
+export const updateProjectSchema = z.object({
+  body: z.object({
+    title: z.string().trim().min(3).max(100).optional(),
+    description: z.string().trim().min(10).optional(),
+    summary: z.string().trim().max(200).optional(),
+
+    categoryId: objectId.optional(),
+
+    techStack: z.array(z.string().trim()).optional(),
+    tags: z.array(z.string().trim()).optional(),
+    keyFeatures: z.array(z.string().trim()).optional(),
+    challenges: z.array(z.string().trim()).optional(),
+    gallery: z.array(z.string().url()).optional(),
+
+    repoFrontendUrl: z.string().url().optional(),
+    repoBackendUrl: z.string().url().optional(),
+    liveUrl: z.string().url().optional(),
+    thumbnail: z.string().url().optional(),
+
+    status: z.nativeEnum(ProjectStatus).optional(),
+    isFeatured: z.boolean().optional(),
+    isPublished: z.boolean().optional(),
+
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional(),
+  }),
+});
+
+export const projectCategoryValidationSchemas = {
   createProjectSchema,
   updateProjectSchema,
 };
