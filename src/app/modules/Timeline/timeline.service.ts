@@ -10,19 +10,28 @@ const createTimeline = async (payload: Prisma.TimelineCreateInput) => {
 };
 
 //  Get All Timeline Entries (with optional filters)
-const getTimelines = async (params?: {
-  type?: "experience" | "education" | "certification";
-}) => {
-  const { type } = params || {};
-
+const getTimelines = async () => {
   const result = await prisma.timeline.findMany({
-    where: {
-      ...(type && { type }),
-    },
     orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
   });
 
-  return result;
+  const grouped = {
+    experience: [] as typeof result,
+    education: [] as typeof result,
+    certification: [] as typeof result,
+  };
+
+  for (const item of result) {
+    if (item.type === EntryType.EXPERIENCE) {
+      grouped.experience.push(item);
+    } else if (item.type === EntryType.EDUCATION) {
+      grouped.education.push(item);
+    } else if (item.type === EntryType.CERTIFICATION) {
+      grouped.certification.push(item);
+    }
+  }
+
+  return grouped;
 };
 
 //  Get Single Timeline
