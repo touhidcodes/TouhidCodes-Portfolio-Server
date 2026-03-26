@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
+import { EntryType, Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 
-// 🔹 Create Timeline Entry
+// Create Timeline Entry
 const createTimeline = async (payload: Prisma.TimelineCreateInput) => {
   const result = await prisma.timeline.create({
     data: payload,
@@ -9,29 +9,23 @@ const createTimeline = async (payload: Prisma.TimelineCreateInput) => {
   return result;
 };
 
-// 🔹 Get All Timeline Entries (with optional filters)
+//  Get All Timeline Entries (with optional filters)
 const getTimelines = async (params?: {
   type?: "experience" | "education" | "certification";
-  isFeatured?: boolean;
 }) => {
-  const { type, isFeatured } = params || {};
+  const { type } = params || {};
 
   const result = await prisma.timeline.findMany({
     where: {
       ...(type && { type }),
-      ...(isFeatured !== undefined && { isFeatured }),
     },
-    orderBy: [
-      { isFeatured: "desc" }, // featured first
-      { startDate: "desc" }, // latest first
-      { createdAt: "desc" },
-    ],
+    orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
   });
 
   return result;
 };
 
-// 🔹 Get Single Timeline
+//  Get Single Timeline
 const getSingleTimeline = async (id: string) => {
   const result = await prisma.timeline.findUnique({
     where: { id },
@@ -39,7 +33,7 @@ const getSingleTimeline = async (id: string) => {
   return result;
 };
 
-// 🔹 Update Timeline
+//  Update Timeline
 const updateTimeline = async (
   id: string,
   payload: Prisma.TimelineUpdateInput,
@@ -51,7 +45,7 @@ const updateTimeline = async (
   return result;
 };
 
-// 🔹 Delete Timeline
+//  Delete Timeline
 const deleteTimeline = async (id: string) => {
   const result = await prisma.timeline.delete({
     where: { id },
@@ -59,16 +53,18 @@ const deleteTimeline = async (id: string) => {
   return result;
 };
 
-// 🔹 Get Grouped Timeline (for UI sections)
+//  Get Grouped Timeline (for UI sections)
 const getGroupedTimelines = async () => {
   const result = await prisma.timeline.findMany({
     orderBy: [{ startDate: "desc" }],
   });
 
   return {
-    experience: result.filter((item) => item.type === "experience"),
-    education: result.filter((item) => item.type === "education"),
-    certification: result.filter((item) => item.type === "certification"),
+    experience: result.filter((item) => item.type === EntryType.EXPERIENCE),
+    education: result.filter((item) => item.type === EntryType.EDUCATION),
+    certification: result.filter(
+      (item) => item.type === EntryType.CERTIFICATION,
+    ),
   };
 };
 
