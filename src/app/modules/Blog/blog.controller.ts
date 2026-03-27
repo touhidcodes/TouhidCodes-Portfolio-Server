@@ -1,20 +1,12 @@
 import httpStatus from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
-import queryPickers from "../../utils/queryPickers";
-import { blogFilterableFields } from "./blog.constants";
 import { blogServices } from "./blog.service";
 
 const getBlogs = catchAsync(async (req, res) => {
-  const filters = queryPickers(req.query, blogFilterableFields);
-  const options = queryPickers(req.query, [
-    "limit",
-    "page",
-    "sortBy",
-    "sortOrder",
-  ]);
 
-  const result = await blogServices.getBlogs(filters, options);
+
+  const result = await blogServices.getBlogs();
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

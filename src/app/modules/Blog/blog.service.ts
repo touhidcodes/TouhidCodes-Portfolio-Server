@@ -1,71 +1,15 @@
-import { Blog, Prisma } from "@prisma/client";
-import { TPaginationOptions } from "../../interfaces/pagination";
+import { Blog } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
-import { paginationHelper } from "../../utils/paginationHelpers";
 
-const getBlogs = async (params: any, options: TPaginationOptions) => {
-  const { page, limit, skip } = paginationHelper.calculatePagination(options);
-  const { searchTerm, category, published, ...filterData } = params;
-
-  const andConditions: Prisma.BlogWhereInput[] = [];
-
-  if (searchTerm) {
-    andConditions.push({
-      OR: [
-        { title: { contains: searchTerm, mode: "insensitive" } },
-        { content: { contains: searchTerm, mode: "insensitive" } },
-      ],
-    });
-  }
-
-  if (category) {
-    andConditions.push({
-      category: { name: category },
-    });
-  }
-
-  if (published !== undefined) {
-    andConditions.push({
-      published: published,
-    });
-  }
-
-  if (Object.keys(filterData).length > 0) {
-    andConditions.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
-    });
-  }
-
-  const whereConditions: Prisma.BlogWhereInput =
-    andConditions.length > 0 ? { AND: andConditions } : {};
-
+const getBlogs = async () => {
   const result = await prisma.blog.findMany({
-    where: whereConditions,
-    skip,
-    take: limit,
-    orderBy:
-      options.sortBy && options.sortOrder
-        ? { [options.sortBy]: options.sortOrder }
-        : { createdAt: "desc" },
+    orderBy: { createdAt: "desc" },
     include: {
       category: true,
     },
   });
 
-  const total = await prisma.blog.count({
-    where: whereConditions,
-  });
-
   return {
-    meta: {
-      page,
-      limit,
-      total,
-    },
     data: result,
   };
 };
