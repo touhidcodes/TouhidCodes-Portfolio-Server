@@ -44,7 +44,7 @@ const loginUser = async (payload: { identifier: string; password: string }) => {
       userId: userData.id,
     },
     config.jwt.access_token_secret as Secret,
-    config.jwt.access_token_expires_in as string,
+    config.jwt.access_token_expires_in,
   );
 
   const refreshToken = jwtHelpers.generateToken(
@@ -54,7 +54,7 @@ const loginUser = async (payload: { identifier: string; password: string }) => {
       userId: userData.id,
     },
     config.jwt.refresh_token_secret as Secret,
-    config.jwt.refresh_token_expires_in as string,
+    config.jwt.refresh_token_expires_in,
   );
 
   return {
@@ -86,7 +86,7 @@ const refreshToken = async (token: string) => {
       email: userData.email,
     },
     config.jwt.access_token_secret as Secret,
-    config.jwt.access_token_expires_in as string,
+    config.jwt.access_token_expires_in,
   );
 
   return {
