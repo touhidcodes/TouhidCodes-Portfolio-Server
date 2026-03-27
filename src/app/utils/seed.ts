@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
-import prisma from "./prisma";
 import config from "../config/config";
+import { prisma } from "../lib/prisma";
 
 export const seedAdmin = async () => {
   try {
@@ -17,7 +17,7 @@ export const seedAdmin = async () => {
 
     const hashedPassword = await bcrypt.hash(
       config.admin.username as string,
-      12
+      12,
     );
 
     const adminData = {
