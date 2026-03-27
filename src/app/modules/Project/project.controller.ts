@@ -1,20 +1,10 @@
 import httpStatus from "http-status";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
-import queryPickers from "../../utils/queryPickers";
-import { projectFilterableFields } from "./project.constants";
 import { projectServices } from "./project.service";
 
 const getProjects = catchAsync(async (req, res) => {
-  const filters = queryPickers(req.query, projectFilterableFields);
-  const options = queryPickers(req.query, [
-    "limit",
-    "page",
-    "sortBy",
-    "sortOrder",
-  ]);
-
-  const result = await projectServices.getProjects(filters, options);
+  const result = await projectServices.getProjects();
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

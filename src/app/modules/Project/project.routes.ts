@@ -1,8 +1,8 @@
 import express from "express";
-import { projectValidationSchemas } from "./project.validation";
-import { projectControllers } from "./project.controller";
-import validateRequest from "../../middlewares/validateRequest";
 import auth from "../../middlewares/auth";
+import validateRequest from "../../middlewares/validateRequest";
+import { projectControllers } from "./project.controller";
+import { projectValidationSchemas } from "./project.validation";
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.post(
   "/",
   // auth(),
   validateRequest(projectValidationSchemas.createProjectSchema),
-  projectControllers.createProject
+  projectControllers.createProject,
 );
 
 router.get("/:projectId", projectControllers.getProjectById);
@@ -21,7 +21,7 @@ router.put(
   "/:projectId",
   auth(),
   validateRequest(projectValidationSchemas.updateProjectSchema),
-  projectControllers.updateProject
+  projectControllers.updateProject,
 );
 
 router.delete("/:projectId", auth(), projectControllers.deleteProject);

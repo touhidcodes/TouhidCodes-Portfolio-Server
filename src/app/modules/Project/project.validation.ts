@@ -81,7 +81,7 @@ export const updateProjectSchema = z.object({
   }),
 });
 
-export const projectCategoryValidationSchemas = {
+export const projectValidationSchemas = {
   createProjectSchema,
   updateProjectSchema,
 };
