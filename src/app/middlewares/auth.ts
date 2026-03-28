@@ -4,7 +4,7 @@ import config from "../config/config";
 import { Secret } from "jsonwebtoken";
 import APIError from "../errors/APIError";
 import catchAsync from "../utils/catchAsync";
-import prisma from "../utils/prisma";
+import { prisma } from "../lib/prisma";
 
 const auth = () => {
   return catchAsync(async (req, res, next) => {
