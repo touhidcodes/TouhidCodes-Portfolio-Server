@@ -1,6 +1,7 @@
-import { Prisma, ProjectStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { ProjectStatus } from "../../../../generated/prisma/enums";
+import { TProjectPayload } from "../../interfaces/project";
 import { prisma } from "../../lib/prisma";
-import { TProjectPayload } from "../../types/project";
 import { generateUniqueSlug } from "../../utils/slugGenerator";
 
 // GET ALL

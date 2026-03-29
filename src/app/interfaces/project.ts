@@ -1,4 +1,4 @@
-export type TProject = {
+export interface TProject {
   id: string;
 
   title: string;
@@ -32,7 +32,7 @@ export type TProject = {
 
   createdAt?: string;
   updatedAt?: string;
-};
+}
 
 export type TProjectPayload = {
   title?: string;
