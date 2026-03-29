@@ -51,14 +51,6 @@ model Project {
   @@map("projects")
 }
 
-enum ProjectStatus {
-  COMPLETED  
-  IN_PROGRESS 
-  UPCOMING 
-  ON_HOLD     
-  ARCHIVED  
-}
-
 model ProjectCategory {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   name      String    @unique
@@ -90,12 +82,6 @@ model SkillCategory {
   updatedAt DateTime @updatedAt
 
   @@map("skillCategories")
-}
-
-enum SkillLevel {
-  Junior
-  Intermediate
-  Expert
 }
 
 model Timeline {
@@ -141,6 +127,53 @@ model Timeline {
     @@map("timelines")
 }
 
+model Blog {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  thumbnail  String?
+  title      String
+  content    String
+  category   BlogCategory @relation(fields: [categoryId], references: [id])
+  categoryId String       @db.ObjectId
+  published  Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("blogs")
+}
+
+model BlogCategory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blog      Blog[]
+
+  @@map("blogCategories")
+}
+
+model Resume {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  url       String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("resume")
+}
+
+enum ProjectStatus {
+  COMPLETED  
+  IN_PROGRESS 
+  UPCOMING 
+  ON_HOLD     
+  ARCHIVED  
+}
+
+enum SkillLevel {
+  Junior
+  Intermediate
+  Expert
+}
+
 enum EntryType {
   EXPERIENCE
   EDUCATION
@@ -179,37 +212,4 @@ enum LearningType {
   BOOTCAMP
   WORKSHOP
   TRAINING
-}
-
-model Blog {
-  id         String       @id @default(auto()) @map("_id") @db.ObjectId
-  thumbnail  String?
-  title      String
-  content    String
-  category   BlogCategory @relation(fields: [categoryId], references: [id])
-  categoryId String       @db.ObjectId
-  published  Boolean      @default(false)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-
-  @@map("blogs")
-}
-
-model BlogCategory {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  blog      Blog[]
-
-  @@map("blogCategories")
-}
-
-model Resume {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  url       String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("resume")
 }

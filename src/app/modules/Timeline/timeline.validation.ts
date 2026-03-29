@@ -74,9 +74,7 @@ const createTimelineBodySchema = z.discriminatedUnion("type", [
   certificationSchema,
 ]);
 
-/**
- * 🔹 Create Schema
- */
+// Create Schema
 const createTimelineSchema = z.object({
   body: createTimelineBodySchema,
 });
