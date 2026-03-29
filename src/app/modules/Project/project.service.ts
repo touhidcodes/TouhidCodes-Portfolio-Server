@@ -1,6 +1,8 @@
-import { Prisma } from "@prisma/client";
 import { ProjectStatus } from "../../../../generated/prisma/enums";
-import { TProjectPayload } from "../../interfaces/project";
+import {
+  TProjectPayload,
+  UpdateProjectPayload,
+} from "../../interfaces/project";
 import { prisma } from "../../lib/prisma";
 import { generateUniqueSlug } from "../../utils/slugGenerator";
 
@@ -64,10 +66,7 @@ const createProject = async (payload: TProjectPayload) => {
 };
 
 // UPDATE (ONLY SLUG + DIRECT DATA)
-const updateProject = async (
-  id: string,
-  payload: Partial<Prisma.ProjectCreateInput> & { categoryId?: string },
-) => {
+const updateProject = async (id: string, payload: UpdateProjectPayload) => {
   const existing = await prisma.project.findUnique({
     where: { id },
     select: { title: true },
@@ -75,19 +74,22 @@ const updateProject = async (
 
   if (!existing) throw new Error("Project not found");
 
-  const updateData: Prisma.ProjectUpdateInput = {
-    ...payload,
+  const { categoryId, title, ...rest } = payload;
+
+  const updateData: any = {
+    ...rest,
   };
 
-  // regenerate slug if title changes
-  if (payload.title && payload.title !== existing.title) {
-    updateData.slug = await generateUniqueSlug(payload.title, id);
+  // slug regeneration
+  if (title && title !== existing.title) {
+    updateData.title = title;
+    updateData.slug = await generateUniqueSlug(title, id);
   }
 
-  // category update
-  if (payload.categoryId) {
+  // relation handling (Prisma format)
+  if (categoryId) {
     updateData.category = {
-      connect: { id: payload.categoryId },
+      connect: { id: categoryId },
     };
   }
 
@@ -96,7 +98,7 @@ const updateProject = async (
     data: updateData,
     include: { category: true },
   });
-};
+};;
 
 // DELETE
 const deleteProject = async (id: string) => {

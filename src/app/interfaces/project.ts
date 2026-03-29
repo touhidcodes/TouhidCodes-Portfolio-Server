@@ -20,7 +20,7 @@ export interface TProject {
   thumbnail: string;
   gallery?: string[];
 
-  status: "PLANNING" | "IN_PROGRESS" | "COMPLETED";
+  status: ProjectStatus;
 
   isFeatured?: boolean;
   isPublished?: boolean;
@@ -55,7 +55,7 @@ export type TProjectPayload = {
   thumbnail?: string;
   gallery?: string[];
   categoryId?: string;
-  status?: string;
+  status?: ProjectStatus;
   isFeatured?: boolean;
   isPublished?: boolean;
   startDate?: Date | string;
@@ -63,3 +63,34 @@ export type TProjectPayload = {
   launchedAt?: Date | string;
   date?: string;
 };
+
+export interface UpdateProjectPayload {
+  title?: string;
+  description?: string;
+  techStack?: string[];
+  tags?: string[];
+  keyFeatures?: string[];
+  challenges?: string[];
+  gallery?: string[];
+
+  repoFrontendUrl?: string;
+  repoBackendUrl?: string;
+  liveUrl?: string;
+
+  thumbnail?: string;
+
+  status?: ProjectStatus;
+  isFeatured?: boolean;
+  isPublished?: boolean;
+
+  startDate?: Date | string;
+  endDate?: Date | string;
+
+  categoryId?: string;
+}
+
+export enum ProjectStatus {
+  PLANNING = "PLANNING",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+}
